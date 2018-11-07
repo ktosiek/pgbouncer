@@ -72,7 +72,7 @@ static bool send_client_authreq(PgSocket *client)
 	if (auth_type == AUTH_MD5) {
 		saltlen = 4;
 		get_random_bytes((void*)client->tmp_login_salt, saltlen);
-	} else if (auth_type == AUTH_PLAIN) {
+	} else if (auth_type == AUTH_PLAIN || auth_type == AUTH_GSS) {
 		/* nothing to do */
 	} else {
 		return false;
@@ -215,6 +215,7 @@ static bool finish_set_pool(PgSocket *client, bool takeover)
 	case AUTH_PLAIN:
 	case AUTH_MD5:
 	case AUTH_PAM:
+	case AUTH_GSS:
 		ok = send_client_authreq(client);
 		break;
 	case AUTH_CERT:
@@ -276,6 +277,15 @@ bool set_pool(PgSocket *client, const char *dbname, const char *username, const 
 		client->auth_user = add_pam_user(username, password);
 		if (!client->auth_user) {
 			slog_error(client, "set_pool(): failed to allocate new PAM user");
+			disconnect_client(client, true, "bouncer resources exhaustion");
+			return false;
+		}
+	} else if (cf_auth_type == AUTH_GSS) {
+		// TODO: we are allocating memory forever before authentication.
+		// This might be a DoS vulnerability.
+		client->auth_user = add_gss_user(username);
+		if (!client->auth_user) {
+			slog_error(client, "set_pool(): failed to allocate new GSS user");
 			disconnect_client(client, true, "bouncer resources exhaustion");
 			return false;
 		}
@@ -565,6 +575,12 @@ static bool handle_client_startup(PgSocket *client, PktHdr *pkt)
 		/* too early */
 		if (!client->auth_user) {
 			disconnect_client(client, true, "client password pkt before startup packet");
+			return false;
+		}
+
+		if (client->client_auth_type == AUTH_GSS) {
+			ok = mbuf_get_bytes(&pkt->data, &pkt->len, &passwd);
+			gss_auth_start(client, passwd);
 			return false;
 		}
 

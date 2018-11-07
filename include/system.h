@@ -61,6 +61,8 @@
 static inline int lstat(const char *path, struct stat *st) { return stat(path, st); }
 #endif
 
+#include <gssapi.h>
+
 bool check_unix_peer_name(int fd, const char *username);
 
 void change_user(const char *user);

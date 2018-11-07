@@ -38,6 +38,8 @@ struct AATree user_tree;
  */
 struct AATree pam_user_tree;
 
+struct AATree gss_user_tree;
+
 /*
  * client and server objects will be pre-allocated
  * they are always in either active or free lists
@@ -115,6 +117,7 @@ void init_objects(void)
 {
 	aatree_init(&user_tree, user_node_cmp, NULL);
 	aatree_init(&pam_user_tree, user_node_cmp, NULL);
+	aatree_init(&gss_user_tree, user_node_cmp, NULL);
 	user_cache = slab_create("user_cache", sizeof(PgUser), 0, NULL, USUAL_ALLOC);
 	db_cache = slab_create("db_cache", sizeof(PgDatabase), 0, NULL, USUAL_ALLOC);
 	pool_cache = slab_create("pool_cache", sizeof(PgPool), 0, NULL, USUAL_ALLOC);
@@ -445,6 +448,31 @@ PgUser *add_pam_user(const char *name, const char *passwd)
 	return user;
 }
 
+/* Add GSS user. The logic is same as in add_db_user */
+PgUser *add_gss_user(const char *name)
+{
+	PgUser *user = NULL;
+	struct AANode *node;
+
+	node = aatree_search(&gss_user_tree, (uintptr_t)name);
+	user = node ? container_of(node, PgUser, tree_node) : NULL;
+
+	if (user == NULL) {
+		user = slab_alloc(user_cache);
+		if (!user)
+			return NULL;
+
+		list_init(&user->head);
+		list_init(&user->pool_list);
+		safe_strcpy(user->name, name, sizeof(user->name));
+		user->passwd[0] = 0;
+
+		aatree_insert(&gss_user_tree, (uintptr_t)user->name, &user->tree_node);
+		user->pool_mode = POOL_INHERIT;
+	}
+	return user;
+}
+
 /* create separate user object for storing server user info */
 PgUser *force_user(PgDatabase *db, const char *name, const char *passwd)
 {
@@ -511,6 +539,7 @@ static PgPool *new_pool(PgDatabase *db, PgUser *user)
 
 	pool->user = user;
 	pool->db = db;
+	pool->gss_context = GSS_S_NO_CONTEXT;
 
 	statlist_init(&pool->active_client_list, "active_client_list");
 	statlist_init(&pool->waiting_client_list, "waiting_client_list");

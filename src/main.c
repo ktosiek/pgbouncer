@@ -177,6 +177,7 @@ static const struct CfLookup auth_type_map[] = {
 #ifdef HAVE_PAM
 	{ "pam", AUTH_PAM },
 #endif
+	{ "gss", AUTH_GSS },
 	{ NULL }
 };
 

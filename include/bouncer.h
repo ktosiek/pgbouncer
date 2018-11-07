@@ -123,13 +123,15 @@ extern int cf_sbuf_len;
 #define AUTH_CRYPT	4
 #define AUTH_MD5	5
 #define AUTH_CREDS	6
+#define AUTH_GSS    7
+#define AUTH_GSS_CONT 11
 
 /* internal codes */
-#define AUTH_CERT	7
-#define AUTH_PEER	8
-#define AUTH_HBA	9
-#define AUTH_REJECT	10
-#define AUTH_PAM	11
+#define AUTH_CERT	20
+#define AUTH_PEER	21
+#define AUTH_HBA	22
+#define AUTH_REJECT	23
+#define AUTH_PAM	24
 
 /* type codes for weird pkts */
 #define PKT_STARTUP_V2  0x20000
@@ -212,6 +214,8 @@ struct PgPool {
 
 	PgDatabase *db;			/* corresponding database */
 	PgUser *user;			/* user logged in as */
+
+	gss_ctx_id_t gss_context;  /* Context used when authenticating to the server */
 
 	struct StatList active_client_list;	/* waiting events logged in clients */
 	struct StatList waiting_client_list;	/* client waits for a server to be available */

@@ -131,6 +131,10 @@ plain
 trust
     No authentication is done. Username must still exist in `auth_file`_.
 
+gss
+    The default GSS context is used to authenticate users.
+    The keytab for the service can be set with [KRB5_KTNAME](https://web.mit.edu/kerberos/krb5-1.13/doc/basic/keytab_def.html#keytab-definition)
+
 any
     Like the ``trust`` method, but the username given is ignored. Requires that all
     databases are configured to log in as specific user.  Additionally, the console

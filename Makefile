@@ -7,6 +7,7 @@ pgbouncer_SOURCES = \
 	src/admin.c \
 	src/client.c \
 	src/dnslookup.c \
+	src/gss.c \
 	src/hba.c \
 	src/janitor.c \
 	src/loader.c \

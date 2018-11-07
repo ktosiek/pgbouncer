@@ -1021,8 +1021,8 @@ There are following differences:
 * Database field: Supports `all`, `sameuser`, `@file`, multiple names.  Not supported: `replication`, `samerole`, `samegroup`.
 * Username field: Supports `all`, `@file`, multiple names.  Not supported: `+groupname`.
 * Address field: Supported IPv4, IPv6.  Not supported: DNS names, domain prefixes.
-* Auth-method field:  Supported methods: `trust`, `reject`, `md5`, `password`, `peer`, `cert`.
-  Not supported: `gss`, `sspi`, `ident`, `ldap`, `radius`, `pam`.
+* Auth-method field:  Supported methods: `trust`, `reject`, `md5`, `password`, `peer`, `cert`, `gss`.
+  Not supported: `sspi`, `ident`, `ldap`, `radius`, `pam`.
   Also username map (`map=`) parameter is not supported.
 
 Example
